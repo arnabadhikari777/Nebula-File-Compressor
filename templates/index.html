@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="author" content="Arnab Adhikari">
+<meta name="description" content="Nebula File Compressor — compress, convert and resize photos, images and PDFs, all in one place.">
+<title>Nebula File Compressor — Smart Photo Resizer, Format Converter &amp; PDF Toolkit</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+<div class="stars" aria-hidden="true"></div>
+
+<header class="site-header">
+    <h1 class="site-title">Nebula <span class="accent">File Compressor</span></h1>
+    <p class="site-subtitle">Compress, Convert &amp; Resize — Photos, Images &amp; PDFs, All in One Place</p>
+</header>
+
+<main class="container">
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <div class="flash-stack" role="alert">
+            {% for category, message in messages %}
+            <div class="flash flash-{{ category }}">
+                <span class="flash-icon">
+                    {% if category == 'error' %}&#9888;{% elif category == 'info' %}&#8505;{% else %}&#10003;{% endif %}
+                </span>
+                <span>{{ message }}</span>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    {% endwith %}
+
+    <!-- Tab navigation -->
+    <nav class="tab-nav" role="tablist" aria-label="Nebula File Compressor tools">
+        <button type="button" class="tab-btn" data-tab="resizer" role="tab" id="tab-btn-resizer" aria-controls="resizer">
+            📐 Photo &amp; Signature Resizer
+        </button>
+        <button type="button" class="tab-btn" data-tab="converter" role="tab" id="tab-btn-converter" aria-controls="converter">
+            🔄 Format Converter &amp; Image to PDF
+        </button>
+        <button type="button" class="tab-btn" data-tab="pdf_tools" role="tab" id="tab-btn-pdf_tools" aria-controls="pdf_tools">
+            🗜️ PDF Tools &amp; Compressor
+        </button>
+    </nav>
+
+    <!-- ============================================================= -->
+    <!-- TAB 1 : Photo & Signature Resizer                              -->
+    <!-- ============================================================= -->
+    <section class="tab-panel" id="resizer" role="tabpanel" aria-labelledby="tab-btn-resizer">
+        <div class="card">
+            <h2>Smart Photo &amp; Signature Resizer</h2>
+            <p class="card-hint">Resize photos and signatures to exact exam/job-form dimensions, and optionally shrink to an exact file size in KB.</p>
+
+            <form action="{{ url_for('resize_photo') }}" method="post" enctype="multipart/form-data" class="tool-form">
+
+                <div class="dropzone" data-input="photo_file">
+                    <input type="file" id="photo_file" name="photo_file" accept=".jpg,.jpeg,.png,.webp" required class="visually-hidden-input">
+                    <label for="photo_file" class="dropzone-label">
+                        <span class="dropzone-icon">📷</span>
+                        <span class="dropzone-text">Drag &amp; drop an image here, or click to browse</span>
+                        <span class="dropzone-filename" data-filename-for="photo_file">No file selected</span>
+                    </label>
+                </div>
+
+                <div class="form-grid">
+                    <div class="field">
+                        <label for="preset">Dimension Preset</label>
+                        <select id="preset" name="preset" class="preset-select">
+                            <option value="ssc_upsc_photo" selected>SSC / UPSC Photo — 200 × 230 px</option>
+                            <option value="signature">Signature — 140 × 60 px</option>
+                            <option value="passport">Passport Photo — 3.5×4.5 cm (300 DPI)</option>
+                            <option value="custom">Custom Dimensions</option>
+                        </select>
+                    </div>
+
+                    <div class="field custom-dim-field" data-custom-field hidden>
+                        <label for="custom_width">Custom Width (px)</label>
+                        <input type="number" id="custom_width" name="custom_width" min="1" placeholder="e.g. 413">
+                    </div>
+
+                    <div class="field custom-dim-field" data-custom-field hidden>
+                        <label for="custom_height">Custom Height (px)</label>
+                        <input type="number" id="custom_height" name="custom_height" min="1" placeholder="e.g. 531">
+                    </div>
+
+                    <div class="field checkbox-field">
+                        <label for="maintain_aspect">
+                            <input type="checkbox" id="maintain_aspect" name="maintain_aspect">
+                            Maintain aspect ratio (unchecked = force exact dimensions)
+                        </label>
+                    </div>
+
+                    <div class="field">
+                        <label for="target_kb">Target File Size (KB) — optional</label>
+                        <input type="number" id="target_kb" name="target_kb" min="1" placeholder="e.g. 20, 50, 100">
+                    </div>
+
+                    <div class="field">
+                        <label for="output_format">Output Format</label>
+                        <select id="output_format" name="output_format">
+                            <option value="JPEG">JPEG</option>
+                            <option value="PNG">PNG</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary">Resize &amp; Download</button>
+            </form>
+        </div>
+    </section>
+
+    <!-- ============================================================= -->
+    <!-- TAB 2 : Format Converter & Image to PDF                        -->
+    <!-- ============================================================= -->
+    <section class="tab-panel" id="converter" role="tabpanel" aria-labelledby="tab-btn-converter">
+
+        <div class="card">
+            <h2>Image Format Converter</h2>
+            <p class="card-hint">Convert a single image between JPG, PNG, WEBP, and BMP. Transparent images are cleanly flattened to white when saved as JPEG/BMP.</p>
+
+            <form action="{{ url_for('convert_format') }}" method="post" enctype="multipart/form-data" class="tool-form">
+                <div class="dropzone" data-input="convert_file">
+                    <input type="file" id="convert_file" name="convert_file" accept=".jpg,.jpeg,.png,.webp,.bmp" required class="visually-hidden-input">
+                    <label for="convert_file" class="dropzone-label">
+                        <span class="dropzone-icon">🖼️</span>
+                        <span class="dropzone-text">Drag &amp; drop an image here, or click to browse</span>
+                        <span class="dropzone-filename" data-filename-for="convert_file">No file selected</span>
+                    </label>
+                </div>
+
+                <div class="form-grid">
+                    <div class="field">
+                        <label for="target_format">Convert To</label>
+                        <select id="target_format" name="target_format">
+                            <option value="JPEG">JPG</option>
+                            <option value="PNG">PNG</option>
+                            <option value="WEBP">WEBP</option>
+                            <option value="BMP">BMP</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary">Convert &amp; Download</button>
+            </form>
+        </div>
+
+        <div class="card">
+            <h2>Multiple Images → Single PDF</h2>
+            <p class="card-hint">Upload several images to merge them into one clean, paginated PDF.</p>
+
+            <form action="{{ url_for('images_to_pdf') }}" method="post" enctype="multipart/form-data" class="tool-form">
+                <div class="dropzone" data-input="pdf_images">
+                    <input type="file" id="pdf_images" name="pdf_images" accept=".jpg,.jpeg,.png,.webp,.bmp" multiple required class="visually-hidden-input">
+                    <label for="pdf_images" class="dropzone-label">
+                        <span class="dropzone-icon">🗂️</span>
+                        <span class="dropzone-text">Drag &amp; drop multiple images here, or click to browse</span>
+                        <span class="dropzone-filename" data-filename-for="pdf_images">No files selected</span>
+                    </label>
+                </div>
+
+                <button type="submit" class="btn btn-primary">Build PDF &amp; Download</button>
+            </form>
+        </div>
+
+        <div class="card">
+            <h2>PDF → Images</h2>
+            <p class="card-hint">Extract every page of a PDF as an image. Multi-page PDFs are bundled into a single ZIP file.</p>
+
+            <form action="{{ url_for('pdf_to_images') }}" method="post" enctype="multipart/form-data" class="tool-form">
+                <div class="dropzone" data-input="pdf_to_split">
+                    <input type="file" id="pdf_to_split" name="pdf_to_split" accept=".pdf" required class="visually-hidden-input">
+                    <label for="pdf_to_split" class="dropzone-label">
+                        <span class="dropzone-icon">📄</span>
+                        <span class="dropzone-text">Drag &amp; drop a PDF here, or click to browse</span>
+                        <span class="dropzone-filename" data-filename-for="pdf_to_split">No file selected</span>
+                    </label>
+                </div>
+
+                <div class="form-grid">
+                    <div class="field">
+                        <label for="extract_format">Extract As</label>
+                        <select id="extract_format" name="extract_format">
+                            <option value="PNG">PNG</option>
+                            <option value="JPEG">JPG</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary">Extract &amp; Download</button>
+            </form>
+        </div>
+
+    </section>
+
+    <!-- ============================================================= -->
+    <!-- TAB 3 : PDF Tools & Compressor                                 -->
+    <!-- ============================================================= -->
+    <section class="tab-panel" id="pdf_tools" role="tabpanel" aria-labelledby="tab-btn-pdf_tools">
+        <div class="card">
+            <h2>PDF Size Optimizer &amp; Compressor</h2>
+            <p class="card-hint">Upload a large PDF to strip redundant metadata and compress its internal content streams, reducing file size without losing pages.</p>
+
+            <form action="{{ url_for('compress_pdf_route') }}" method="post" enctype="multipart/form-data" class="tool-form">
+                <div class="dropzone" data-input="pdf_to_compress">
+                    <input type="file" id="pdf_to_compress" name="pdf_to_compress" accept=".pdf" required class="visually-hidden-input">
+                    <label for="pdf_to_compress" class="dropzone-label">
+                        <span class="dropzone-icon">🗜️</span>
+                        <span class="dropzone-text">Drag &amp; drop a PDF here, or click to browse</span>
+                        <span class="dropzone-filename" data-filename-for="pdf_to_compress">No file selected</span>
+                    </label>
+                </div>
+
+                <button type="submit" class="btn btn-primary">Compress &amp; Download</button>
+            </form>
+        </div>
+    </section>
+
+</main>
+
+<footer class="site-footer">
+    <p>Nebula File Compressor &middot; Created by <strong>Arnab Adhikari</strong></p>
+</footer>
+
+<script>
+(function () {
+    "use strict";
+
+    /* -----------------------------------------------------------------
+     * Tab switching
+     * ------------------------------------------------------------- */
+    var tabButtons = document.querySelectorAll(".tab-btn");
+    var tabPanels = document.querySelectorAll(".tab-panel");
+
+    function activateTab(tabId) {
+        tabButtons.forEach(function (btn) {
+            var isActive = btn.getAttribute("data-tab") === tabId;
+            btn.classList.toggle("active", isActive);
+            btn.setAttribute("aria-selected", isActive ? "true" : "false");
+            btn.setAttribute("tabindex", isActive ? "0" : "-1");
+        });
+        tabPanels.forEach(function (panel) {
+            var isActive = panel.id === tabId;
+            panel.classList.toggle("active", isActive);
+            panel.setAttribute("aria-hidden", isActive ? "false" : "true");
+        });
+    }
+
+    tabButtons.forEach(function (btn) {
+        btn.addEventListener("click", function () {
+            activateTab(btn.getAttribute("data-tab"));
+        });
+    });
+
+    // Activate the tab the server told us to show (e.g. after a redirect
+    // following a validation error), defaulting to the resizer tab.
+    var initialTab = {{ active_tab | tojson }};
+    activateTab(initialTab);
+
+    /* -----------------------------------------------------------------
+     * Preset selector: reveal custom width/height fields only when
+     * "Custom Dimensions" is chosen.
+     * ------------------------------------------------------------- */
+    var presetSelect = document.getElementById("preset");
+    var customFields = document.querySelectorAll("[data-custom-field]");
+
+    function toggleCustomFields() {
+        var isCustom = presetSelect.value === "custom";
+        customFields.forEach(function (field) {
+            field.hidden = !isCustom;
+            var input = field.querySelector("input");
+            if (input) {
+                input.required = isCustom;
+            }
+        });
+    }
+
+    if (presetSelect) {
+        presetSelect.addEventListener("change", toggleCustomFields);
+        toggleCustomFields();
+    }
+
+    /* -----------------------------------------------------------------
+     * Drag-and-drop upload zones with selected-filename display.
+     * Works for both single-file and multi-file inputs.
+     * ------------------------------------------------------------- */
+    var dropzones = document.querySelectorAll(".dropzone");
+
+    dropzones.forEach(function (zone) {
+        var inputId = zone.getAttribute("data-input");
+        var input = document.getElementById(inputId);
+        var filenameLabel = zone.querySelector("[data-filename-for='" + inputId + "']");
+
+        function updateFilenameLabel() {
+            if (!input.files || input.files.length === 0) {
+                filenameLabel.textContent = input.multiple ? "No files selected" : "No file selected";
+                return;
+            }
+            if (input.files.length === 1) {
+                filenameLabel.textContent = input.files[0].name;
+            } else {
+                filenameLabel.textContent = input.files.length + " files selected";
+            }
+        }
+
+        input.addEventListener("change", updateFilenameLabel);
+
+        ["dragenter", "dragover"].forEach(function (eventName) {
+            zone.addEventListener(eventName, function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                zone.classList.add("dragover");
+            });
+        });
+
+        ["dragleave", "dragend", "drop"].forEach(function (eventName) {
+            zone.addEventListener(eventName, function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                zone.classList.remove("dragover");
+            });
+        });
+
+        zone.addEventListener("drop", function (e) {
+            var droppedFiles = e.dataTransfer.files;
+            if (droppedFiles && droppedFiles.length > 0) {
+                input.files = droppedFiles;
+                updateFilenameLabel();
+            }
+        });
+    });
+
+})();
+</script>
+
+</body>
+</html>
